@@ -18,8 +18,9 @@ class RickandMortyController extends Controller
 
     public function index()
 	{
+		//$this->test();
 		$locations = $this->charCounter();
-
+		
 		dd($locations);
 	}
 	
@@ -109,7 +110,7 @@ class RickandMortyController extends Controller
 	*/
 	private function charCounterCharacter($char)
 	{
-		$characters = $this->sendRequest($this->character);
+		$characters = $this->sendRequest($this->character);	
 		$count_characters = 0; //Se usa para validar si se estan contando todas los personajes
 		$count_char = 0;  //Se usa para guardar cuantas veces se encuentra un caracter en los nombres de todos los personajes
 		if($characters){
@@ -127,6 +128,11 @@ class RickandMortyController extends Controller
 		return array('count_char' => $count_char, 'count_characters' => $count_characters);		
 	}
 	
+	public function test(){
+
+		$res = file_get_contents($this->character);
+		dd($res);
+	}
 	/*
 		Descripcion: Esta funcion realiza la llamada a la api mediante GET.
 		Input: $api_url
@@ -135,7 +141,7 @@ class RickandMortyController extends Controller
 	private function sendRequest($api_url) 
 	{
 		
-		$ch = curl_init();
+		/*$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $api_url); 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
 		curl_setopt($ch, CURLOPT_HEADER, 0); 
@@ -145,7 +151,8 @@ class RickandMortyController extends Controller
 		$errorMsg = curl_error($ch);
 		//echo "error: ".$errorMsg."<br>";
 		curl_close($ch);
-	
+		*/
+		$response = file_get_contents($api_url);
 		$response = json_decode($response, true);
 		
 		if (!$response) {
