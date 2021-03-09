@@ -32,7 +32,11 @@ class RickandMortyController extends Controller
 		$episodes = $this->charCounterEpisode('e');
 		echo 'Cuántas veces aparece la letra "e" en los nombres de todos los episode: '.$episodes['count_char'].'<br>';
 		echo 'Cantidad de episodios '.$episodes['count_episodes'].'<br>';
-	
+		
+		$characters = $this->charCounterCharacter('c');
+		echo 'Cuántas veces aparece la letra "c" en los nombres de todos los character: '.$characters['count_char'].'<br>';
+		echo 'Cantidad de personajes '.$characters['count_characters'].'<br>';
+		
 		$end_time = microtime(true);
 		$time = number_format(($end_time - $start_time), 2);
 
@@ -70,9 +74,9 @@ class RickandMortyController extends Controller
 	/*
 		Descripcion: Esta funcion cuenta cuantas veces se encuentra un caracter en los nombres de todos los episodios.
 		Input: $char
-		Output: array(count_char, count_locations)
+		Output: array(count_char, count_episodes)
 			count_char: Cantidad de caracteres,
-			count_episodes: Cantidad de locaciones
+			count_episodes: Cantidad de episodios
 		
 	*/
 	private function charCounterEpisode($char)
@@ -100,7 +104,7 @@ class RickandMortyController extends Controller
 		Input: $char
 		Output: array(count_char, count_locations)
 			count_char: Cantidad de caracteres,
-			count_episodes: Cantidad de locaciones
+			count_characters: Cantidad de personajes
 		
 	*/
 	private function charCounterCharacter($char)
@@ -111,7 +115,7 @@ class RickandMortyController extends Controller
 		if($characters){
 			$pages = $characters['info']['pages'];
 			for($i = 1;$i<=$pages; $i++ ){
-				$data = $this->sendRequest($this->episodes.'?page='.$i);
+				$data = $this->sendRequest($this->character.'?page='.$i);
 				$count_characters = $count_characters + count($data['results']);
 				if($data['results']){
 					foreach($data['results'] as $result){						
