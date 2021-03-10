@@ -131,6 +131,7 @@ class RickandMortyController extends Controller
 	}
 	
 	public function test(){
+		$start_time = microtime(true);
 		$location = collect(); //Se crea una coleccion para trabajar con los datos
 		$location->episode = collect();
 		$episodes = $this->sendRequest($this->episodes); //Consulto los episodios
@@ -155,18 +156,16 @@ class RickandMortyController extends Controller
 						$aux_episodio->count_origin = $aux_episodio->origin->count();
 						$location->episode->push($aux_episodio);
 					}
-					dd($location->episode);
 				}
 			}	
 		}
-		
-		$location->episode = collect();
-		
-		$response = $this->sendRequest($this->episodes.'/1');
-		
-		//
-		dd($unique->count());
+		$end_time = microtime(true);
+		$time = number_format(($end_time - $start_time), 2);
+
+		echo 'This page loaded in ', $time, ' seconds';
+		dd($location);
 	}
+	
 	/*
 		Descripcion: Esta funcion realiza la llamada a la api mediante GET.
 		Input: $api_url
