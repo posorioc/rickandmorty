@@ -131,14 +131,34 @@ class RickandMortyController extends Controller
 	}
 	
 	public function test(){
-		$this->getCharacter();
+		$characters = $this->getCharacter(); //Consulto los personajes
+		
+		//dd($character);
 		$start_time = microtime(true);
 		$location = collect(); //Se crea una coleccion para trabajar con los datos
 		$location->episode = collect();
-		$episodes = $this->sendRequest($this->episodes); //Consulto los episodios
-		if($episodes){
+		$data = $this->sendRequest($this->episodes); //Consulto los episodios
+		if($data){
+			if($data['results']){
+				foreach($data['results'] as $result){ //Recorro los episodios por pagina
+					$aux_episodio = collect();
+					$aux_episodio->id = $result['id'];
+					$aux_episodio->name = $result['name'];
+					$aux_episodio->origin = collect();
+					$aux_location = collect();
+					foreach($result['characters'] as $aux){
+						$aux_character = $characters->where('url', $aux);
+						foreach($aux_character as $character){
+							$aux_location->push($character->origin);	
+						}
+					}
+					$aux_episodio->origin = $aux_location->unique();
+					$aux_episodio->count_origin = $aux_episodio->origin->count();
+					$location->episode->push($aux_episodio);
+				}
+			}
 			$pages = $episodes['info']['pages']; //Consulto la cantidad de paginas
-			for($i = 1;$i<=$pages; $i++ ){
+			for($i = 2;$i<=$pages; $i++ ){
 				$data = $this->sendRequest($this->episodes.'?page='.$i); //Consulto los episodios por pagina
 				if($data['results']){
 					foreach($data['results'] as $result){ //Recorro los episodios por pagina
@@ -148,10 +168,10 @@ class RickandMortyController extends Controller
 						$aux_episodio->origin = collect();
 						$aux_location = collect();
 						foreach($result['characters'] as $aux){
-							$character = $this->sendRequest($aux);
-							//$aux_origin = collect();
-							//$aux_origin->name = $character['origin']['name'];
-							$aux_location->push($character['origin']['name']);	
+							$aux_character = $characters->where('url', $aux);
+							foreach($aux_character as $character){
+								$aux_location->push($character->origin);	
+							}
 						}
 						$aux_episodio->origin = $aux_location->unique();
 						$aux_episodio->count_origin = $aux_episodio->origin->count();
@@ -167,6 +187,38 @@ class RickandMortyController extends Controller
 		dd($location);
 	}
 	
+	/*private function getEpisodes()
+	{
+		$episodes = collect(); //Se crea una coleccion para trabajar con los datos
+	
+		$data = $this->sendRequest($this->episodes);	
+		if($data){
+			$pages = $data['info']['pages'];
+			if($data['results']){
+				foreach($data['results'] as $result){ //Recorro los resultados por pagina y los guardo en una coleccion
+					$aux_episode = collect();
+					$aux_episode->id = $result['id'];
+					$aux_episode->name = $result['name'];
+					$aux_character->origin = $result['origin']['name'];
+					$characters->push($aux_character);
+				}
+			}
+			for($i = 2;$i<=$pages; $i++ ){
+				$data = $this->sendRequest($this->episodes.'?page='.$i); //Recorro el resto de las paginas.
+				if($data['results']){
+					foreach($data['results'] as $result){ //Recorro los resultados por pagina y los guardo en una coleccion
+						$aux_character = collect();
+						$aux_character->id = $result['id'];
+						$aux_character->name = $result['name'];
+						$aux_character->origin = $result['origin']['name'];
+						$characters->push($aux_character);
+					}
+				}
+			}	
+		}
+		return $characters;		
+	}*/
+	
 	private function getCharacter()
 	{
 		$characters = collect(); //Se crea una coleccion para trabajar con los datos
@@ -180,23 +232,25 @@ class RickandMortyController extends Controller
 					$aux_character->id = $result['id'];
 					$aux_character->name = $result['name'];
 					$aux_character->origin = $result['origin']['name'];
+					$aux_character->url = $result['url'];
 					$characters->push($aux_character);
 				}
 			}
 			for($i = 2;$i<=$pages; $i++ ){
-				$data = $this->sendRequest($this->character.'?page='.$i);
+				$data = $this->sendRequest($this->character.'?page='.$i); //Recorro el resto de las paginas.
 				if($data['results']){
 					foreach($data['results'] as $result){ //Recorro los resultados por pagina y los guardo en una coleccion
 						$aux_character = collect();
 						$aux_character->id = $result['id'];
 						$aux_character->name = $result['name'];
 						$aux_character->origin = $result['origin']['name'];
+						$aux_character->url = $result['url'];
 						$characters->push($aux_character);
 					}
 				}
 			}	
 		}
-		dd($characters);		
+		return $characters;		
 	}
 	
 	public function test2(){
