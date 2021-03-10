@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+use Illuminate\Support\Collection;
+
 
 class RickandMortyController extends Controller
 {
@@ -18,8 +20,8 @@ class RickandMortyController extends Controller
 
     public function index()
 	{
-		//$this->test();
-		$locations = $this->charCounter();
+		$this->test();
+		//$locations = $this->charCounter();
 		
 		dd($locations);
 	}
@@ -129,9 +131,41 @@ class RickandMortyController extends Controller
 	}
 	
 	public function test(){
-
-		$res = file_get_contents($this->character);
-		dd($res);
+		$location = collect(); //Se crea una coleccion para trabajar con los datos
+		$location->episode = collect();
+		$episodes = $this->sendRequest($this->episodes); //Consulto los episodios
+		if($episodes){
+			$pages = $episodes['info']['pages']; //Consulto la cantidad de paginas
+			for($i = 1;$i<=$pages; $i++ ){
+				$data = $this->sendRequest($this->episodes.'?page='.$i); //Consulto los episodios por pagina
+				if($data['results']){
+					foreach($data['results'] as $result){ //Recorro los episodios por pagina
+						$aux_episodio = collect();
+						$aux_episodio->id = $result['id'];
+						$aux_episodio->name = $result['name'];
+						$aux_episodio->origin = collect();
+						$aux_location = collect();
+						foreach($result['characters'] as $aux){
+							$character = $this->sendRequest($aux);
+							//$aux_origin = collect();
+							//$aux_origin->name = $character['origin']['name'];
+							$aux_location->push($character['origin']['name']);	
+						}
+						$aux_episodio->origin = $aux_location->unique();
+						$aux_episodio->count_origin = $aux_episodio->origin->count();
+						$location->episode->push($aux_episodio);
+					}
+					dd($location->episode);
+				}
+			}	
+		}
+		
+		$location->episode = collect();
+		
+		$response = $this->sendRequest($this->episodes.'/1');
+		
+		//
+		dd($unique->count());
 	}
 	/*
 		Descripcion: Esta funcion realiza la llamada a la api mediante GET.
