@@ -1,0 +1,14 @@
+.header img{
+	display: block;
+    object-fit: cover;
+    border-radius: 0px;
+    width: 100%;
+    height: 30vh;
+    opacity: 1;
+    object-position: center 50%;
+}
+
+.main span{
+	color:red;
+	font-weight: 600;
+}

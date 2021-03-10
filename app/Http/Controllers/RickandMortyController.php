@@ -20,30 +20,42 @@ class RickandMortyController extends Controller
 
     public function index()
 	{
-		$this->test();
-		//$locations = $this->charCounter();
-		
-		dd($locations);
+
+		$charCounter = $this->charCounter();
+		$episodeLocation = $this->episodeLocations();
+	
+		return view('home')
+			->with('charCounterLocations',$charCounter['location'])
+			->with('charCounterEpisode',$charCounter['episodes'])
+			->with('charCounterCharacter',$charCounter['characters'])
+			->with('charCounterTime',$charCounter['time'])
+			->with('episodeLocation',$episodeLocation['episode'])
+			->with('episodeLocationTime',$episodeLocation['time']);
 	}
 	
 	public function charCounter(){
-		$start_time = microtime(true);
+		$start_time = microtime(true); //Tiempo de inicio
 		$locations = $this->charCounterLocations('l');
-		echo 'Cuántas veces aparece la letra "l" en los nombres de todos los location: '.$locations['count_char'].'<br>';
-		echo 'Cantidad de locaciones '.$locations['count_locations'].'<br>';
+		//echo 'Cuántas veces aparece la letra "l" en los nombres de todos los location: '.$locations['count_char'].'<br>';
+		//echo 'Cantidad de locaciones '.$locations['count_locations'].'<br>';
 		
 		$episodes = $this->charCounterEpisode('e');
-		echo 'Cuántas veces aparece la letra "e" en los nombres de todos los episode: '.$episodes['count_char'].'<br>';
-		echo 'Cantidad de episodios '.$episodes['count_episodes'].'<br>';
+		//echo 'Cuántas veces aparece la letra "e" en los nombres de todos los episode: '.$episodes['count_char'].'<br>';
+		//echo 'Cantidad de episodios '.$episodes['count_episodes'].'<br>';
 		
 		$characters = $this->charCounterCharacter('c');
-		echo 'Cuántas veces aparece la letra "c" en los nombres de todos los character: '.$characters['count_char'].'<br>';
-		echo 'Cantidad de personajes '.$characters['count_characters'].'<br>';
+		//echo 'Cuántas veces aparece la letra "c" en los nombres de todos los character: '.$characters['count_char'].'<br>';
+		//echo 'Cantidad de personajes '.$characters['count_characters'].'<br>';
 		
-		$end_time = microtime(true);
-		$time = number_format(($end_time - $start_time), 2);
+		$end_time = microtime(true); //Tiempo de termino
+		$time = number_format(($end_time - $start_time), 2); //Tiempo de total
 
-		echo 'This page loaded in ', $time, ' seconds';
+		return array(
+			'location' => $locations['count_char'], 
+			'episodes' => $episodes['count_char'], 
+			'characters' => $characters['count_char'],
+			'time' => $time
+		);
 	}
 	
 	/*
@@ -130,13 +142,11 @@ class RickandMortyController extends Controller
 		return array('count_char' => $count_char, 'count_characters' => $count_characters);		
 	}
 	
-	public function test(){
+	public function episodeLocations(){
 		$characters = $this->getCharacter(); //Consulto los personajes
-		
-		//dd($character);
-		$start_time = microtime(true);
-		$location = collect(); //Se crea una coleccion para trabajar con los datos
-		$location->episode = collect();
+		$start_time = microtime(true); //Tiempo de inicio
+		//$location = collect(); //Se crea una coleccion para trabajar con los datos
+		$episode = collect();
 		$data = $this->sendRequest($this->episodes); //Consulto los episodios
 		if($data){
 			if($data['results']){
@@ -154,7 +164,7 @@ class RickandMortyController extends Controller
 					}
 					$aux_episodio->origin = $aux_location->unique();
 					$aux_episodio->count_origin = $aux_episodio->origin->count();
-					$location->episode->push($aux_episodio);
+					$episode->push($aux_episodio);
 				}
 			}
 			$pages = $data['info']['pages']; //Consulto la cantidad de paginas
@@ -175,50 +185,21 @@ class RickandMortyController extends Controller
 						}
 						$aux_episodio->origin = $aux_location->unique();
 						$aux_episodio->count_origin = $aux_episodio->origin->count();
-						$location->episode->push($aux_episodio);
+						$episode->push($aux_episodio);
 					}
 				}
 			}	
 		}
-		$end_time = microtime(true);
-		$time = number_format(($end_time - $start_time), 2);
+		$end_time = microtime(true); //Tiempo de termino
+		$time = number_format(($end_time - $start_time), 2); //Tiempo de total
 
-		echo 'This page loaded in ', $time, ' seconds';
-		dd($location);
+		return array('episode' => $episode, 'time' => $time);
 	}
 	
-	/*private function getEpisodes()
-	{
-		$episodes = collect(); //Se crea una coleccion para trabajar con los datos
-	
-		$data = $this->sendRequest($this->episodes);	
-		if($data){
-			$pages = $data['info']['pages'];
-			if($data['results']){
-				foreach($data['results'] as $result){ //Recorro los resultados por pagina y los guardo en una coleccion
-					$aux_episode = collect();
-					$aux_episode->id = $result['id'];
-					$aux_episode->name = $result['name'];
-					$aux_character->origin = $result['origin']['name'];
-					$characters->push($aux_character);
-				}
-			}
-			for($i = 2;$i<=$pages; $i++ ){
-				$data = $this->sendRequest($this->episodes.'?page='.$i); //Recorro el resto de las paginas.
-				if($data['results']){
-					foreach($data['results'] as $result){ //Recorro los resultados por pagina y los guardo en una coleccion
-						$aux_character = collect();
-						$aux_character->id = $result['id'];
-						$aux_character->name = $result['name'];
-						$aux_character->origin = $result['origin']['name'];
-						$characters->push($aux_character);
-					}
-				}
-			}	
-		}
-		return $characters;		
-	}*/
-	
+	/*
+		Descripcion: Esta funcion realiza obtiene los datos de los personajes
+		Output: $characters. Coleccion con los datos: id, name, origin, url.
+	*/	
 	private function getCharacter()
 	{
 		$characters = collect(); //Se crea una coleccion para trabajar con los datos
@@ -233,7 +214,7 @@ class RickandMortyController extends Controller
 					$aux_character->name = $result['name'];
 					$aux_character->origin = $result['origin']['name'];
 					$aux_character->url = $result['url'];
-					$characters->push($aux_character);
+					$characters->push($aux_character); //Guardo los datos en la coleccion
 				}
 			}
 			for($i = 2;$i<=$pages; $i++ ){
@@ -245,17 +226,14 @@ class RickandMortyController extends Controller
 						$aux_character->name = $result['name'];
 						$aux_character->origin = $result['origin']['name'];
 						$aux_character->url = $result['url'];
-						$characters->push($aux_character);
+						$characters->push($aux_character); //Guardo los datos en la coleccion
 					}
 				}
 			}	
 		}
 		return $characters;		
 	}
-	
-	public function test2(){
-		$episodes = $this->sendRequest($this->episodes);
-	}
+
 	
 	/*
 		Descripcion: Esta funcion realiza la llamada a la api mediante GET.
@@ -264,16 +242,12 @@ class RickandMortyController extends Controller
 	*/
 	private function sendRequest($api_url) 
 	{
-		
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $api_url); 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
 		curl_setopt($ch, CURLOPT_HEADER, 0); 
 		$response = curl_exec($ch); 
-
-		//echo "respuesta: ".$response."<br>";
 		$errorMsg = curl_error($ch);
-		//echo "error: ".$errorMsg."<br>";
 		curl_close($ch);
 		
 		//$response = file_get_contents($api_url);
