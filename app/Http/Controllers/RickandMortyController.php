@@ -157,7 +157,7 @@ class RickandMortyController extends Controller
 					$location->episode->push($aux_episodio);
 				}
 			}
-			$pages = $episodes['info']['pages']; //Consulto la cantidad de paginas
+			$pages = $data['info']['pages']; //Consulto la cantidad de paginas
 			for($i = 2;$i<=$pages; $i++ ){
 				$data = $this->sendRequest($this->episodes.'?page='.$i); //Consulto los episodios por pagina
 				if($data['results']){
