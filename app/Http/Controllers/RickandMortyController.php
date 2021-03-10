@@ -265,7 +265,7 @@ class RickandMortyController extends Controller
 	private function sendRequest($api_url) 
 	{
 		
-		/*$ch = curl_init();
+		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $api_url); 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
 		curl_setopt($ch, CURLOPT_HEADER, 0); 
@@ -275,8 +275,8 @@ class RickandMortyController extends Controller
 		$errorMsg = curl_error($ch);
 		//echo "error: ".$errorMsg."<br>";
 		curl_close($ch);
-		*/
-		$response = file_get_contents($api_url);
+		
+		//$response = file_get_contents($api_url);
 		$response = json_decode($response, true);
 		
 		if (!$response) {
