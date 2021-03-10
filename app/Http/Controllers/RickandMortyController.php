@@ -131,6 +131,7 @@ class RickandMortyController extends Controller
 	}
 	
 	public function test(){
+		$this->getCharacter();
 		$start_time = microtime(true);
 		$location = collect(); //Se crea una coleccion para trabajar con los datos
 		$location->episode = collect();
@@ -164,6 +165,42 @@ class RickandMortyController extends Controller
 
 		echo 'This page loaded in ', $time, ' seconds';
 		dd($location);
+	}
+	
+	private function getCharacter()
+	{
+		$characters = collect(); //Se crea una coleccion para trabajar con los datos
+	
+		$data = $this->sendRequest($this->character);	
+		if($data){
+			$pages = $data['info']['pages'];
+			if($data['results']){
+				foreach($data['results'] as $result){ //Recorro los resultados por pagina y los guardo en una coleccion
+					$aux_character = collect();
+					$aux_character->id = $result['id'];
+					$aux_character->name = $result['name'];
+					$aux_character->origin = $result['origin']['name'];
+					$characters->push($aux_character);
+				}
+			}
+			for($i = 2;$i<=$pages; $i++ ){
+				$data = $this->sendRequest($this->character.'?page='.$i);
+				if($data['results']){
+					foreach($data['results'] as $result){ //Recorro los resultados por pagina y los guardo en una coleccion
+						$aux_character = collect();
+						$aux_character->id = $result['id'];
+						$aux_character->name = $result['name'];
+						$aux_character->origin = $result['origin']['name'];
+						$characters->push($aux_character);
+					}
+				}
+			}	
+		}
+		dd($characters);		
+	}
+	
+	public function test2(){
+		$episodes = $this->sendRequest($this->episodes);
 	}
 	
 	/*
