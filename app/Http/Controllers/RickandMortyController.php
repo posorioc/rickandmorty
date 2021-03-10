@@ -159,9 +159,9 @@ class RickandMortyController extends Controller
 			}
 			$pages = $data['info']['pages']; //Consulto la cantidad de paginas
 			for($i = 2;$i<=$pages; $i++ ){
-				$data = $this->sendRequest($this->episodes.'?page='.$i); //Consulto los episodios por pagina
-				if($data['results']){
-					foreach($data['results'] as $result){ //Recorro los episodios por pagina
+				$page = $this->sendRequest($this->episodes.'?page='.$i); //Consulto los episodios por pagina
+				if($page['results']){
+					foreach($page['results'] as $result){ //Recorro los episodios por pagina
 						$aux_episodio = collect();
 						$aux_episodio->id = $result['id'];
 						$aux_episodio->name = $result['name'];
@@ -169,6 +169,8 @@ class RickandMortyController extends Controller
 						$aux_location = collect();
 						foreach($result['characters'] as $aux){
 							$aux_character = $characters->where('url', $aux);
+							print_r($aux_character);
+							echo '<br>';
 							foreach($aux_character as $character){
 								$aux_location->push($character->origin);	
 							}
@@ -237,9 +239,9 @@ class RickandMortyController extends Controller
 				}
 			}
 			for($i = 2;$i<=$pages; $i++ ){
-				$data = $this->sendRequest($this->character.'?page='.$i); //Recorro el resto de las paginas.
-				if($data['results']){
-					foreach($data['results'] as $result){ //Recorro los resultados por pagina y los guardo en una coleccion
+				$page = $this->sendRequest($this->character.'?page='.$i); //Recorro el resto de las paginas.
+				if($page['results']){
+					foreach($page['results'] as $result){ //Recorro los resultados por pagina y los guardo en una coleccion
 						$aux_character = collect();
 						$aux_character->id = $result['id'];
 						$aux_character->name = $result['name'];
