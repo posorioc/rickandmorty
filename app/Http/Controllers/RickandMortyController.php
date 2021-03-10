@@ -169,8 +169,6 @@ class RickandMortyController extends Controller
 						$aux_location = collect();
 						foreach($result['characters'] as $aux){
 							$aux_character = $characters->where('url', $aux);
-							print_r($aux_character);
-							echo '<br>';
 							foreach($aux_character as $character){
 								$aux_location->push($character->origin);	
 							}
