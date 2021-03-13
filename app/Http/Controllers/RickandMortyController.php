@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 class RickandMortyController extends Controller
 {
     private $character;
+	private $characters;
 	private $location;
 	private $episodes;
 	
@@ -20,7 +21,7 @@ class RickandMortyController extends Controller
 
     public function index()
 	{
-
+		$this->characters = $this->getCharacter(); //Descargo los personajes desde la API.
 		$charCounter = $this->charCounter();
 		$episodeLocation = $this->episodeLocations();
 	
@@ -29,10 +30,19 @@ class RickandMortyController extends Controller
 			->with('charCounterEpisode',$charCounter['episodes'])
 			->with('charCounterCharacter',$charCounter['characters'])
 			->with('charCounterTime',$charCounter['time'])
-			->with('episodeLocation',$episodeLocation['episode'])
+			->with('episodeLocation',$episodeLocation['episodes'])
 			->with('episodeLocationTime',$episodeLocation['time']);
 	}
 	
+	/*
+	Descripcion: Esta funcion es la función principal para contar los caracteres y llama las otras funciones.
+	Output: array(location, episodes, characters, time)
+		location: Cantidad de caracteres 'x' en las locaciones,
+		episodes: Cantidad de caracteres 'x' en los episiodios,
+		characters: Cantidad de caracteres 'x' en los personajes,
+		time: Tiempo de ejecución.
+		
+	*/
 	public function charCounter(){
 		$start_time = microtime(true); //Tiempo de inicio
 		$locations = $this->charCounterLocations('l');
@@ -59,11 +69,11 @@ class RickandMortyController extends Controller
 	}
 	
 	/*
-		Descripcion: Esta funcion cuenta cuantas veces se encuentra un caracter en los nombres de todos los location.
-		Input: $char
-		Output: array(count_char, count_locations)
-			count_char: Cantidad de caracteres,
-			count_locations: Cantidad de locaciones
+	Descripcion: Esta funcion cuenta cuantas veces se encuentra un caracter en los nombres de todos los location.
+	Input: $char
+	Output: array(count_char, count_locations)
+		count_char: Cantidad de caracteres,
+		count_locations: Cantidad de locaciones
 		
 	*/
 	private function charCounterLocations($char)
@@ -87,12 +97,11 @@ class RickandMortyController extends Controller
 	}
 	
 	/*
-		Descripcion: Esta funcion cuenta cuantas veces se encuentra un caracter en los nombres de todos los episodios.
-		Input: $char
-		Output: array(count_char, count_episodes)
-			count_char: Cantidad de caracteres,
-			count_episodes: Cantidad de episodios
-		
+	Descripcion: Esta funcion cuenta cuantas veces se encuentra un caracter en los nombres de todos los episodios.
+	Input: $char
+	Output: array(count_char, count_episodes)
+		count_char: Cantidad de caracteres,
+		count_episodes: Cantidad de episodios
 	*/
 	private function charCounterEpisode($char)
 	{
@@ -115,38 +124,37 @@ class RickandMortyController extends Controller
 	}
 	
 	/*
-		Descripcion: Esta funcion cuenta cuantas veces se encuentra un caracter en los nombres de todos los personajes.
-		Input: $char
-		Output: array(count_char, count_locations)
-			count_char: Cantidad de caracteres,
-			count_characters: Cantidad de personajes
+	Descripcion: Esta funcion cuenta cuantas veces se encuentra un caracter en los nombres de todos los personajes.
+	Input: $char
+	Output: array(count_char, count_locations)
+		count_char: Cantidad de caracteres,
+		count_characters: Cantidad de personajes
 		
 	*/
 	private function charCounterCharacter($char)
 	{
-		$characters = $this->sendRequest($this->character);	
 		$count_characters = 0; //Se usa para validar si se estan contando todas los personajes
 		$count_char = 0;  //Se usa para guardar cuantas veces se encuentra un caracter en los nombres de todos los personajes
-		if($characters){
-			$pages = $characters['info']['pages'];
-			for($i = 1;$i<=$pages; $i++ ){
-				$data = $this->sendRequest($this->character.'?page='.$i);
-				$count_characters = $count_characters + count($data['results']);
-				if($data['results']){
-					foreach($data['results'] as $result){						
-						$count_char = $count_char + substr_count($result['name'],$char);
-					}
-				}
-			}	
+		if($this->characters){
+			$count_characters = count($this->characters);
+			foreach($this->characters as $character){
+				$count_char = $count_char + substr_count($character->name,$char);
+			}
 		}
 		return array('count_char' => $count_char, 'count_characters' => $count_characters);		
 	}
 	
+	/*
+	Descripcion: Esta funcion cuenta las locaciones de origen distintas de los personajes por capitulos.
+	Output: array(episodes, time)
+		episodes: Coleccion con los datos de los episodios y las locaciones de los personajes.
+		time: Cantidad de personajes		
+	*/
 	public function episodeLocations(){
-		$characters = $this->getCharacter(); //Consulto los personajes
+		$characters = $this->characters; //Consulto los personajes
 		$start_time = microtime(true); //Tiempo de inicio
 		//$location = collect(); //Se crea una coleccion para trabajar con los datos
-		$episode = collect();
+		$episodes = collect();
 		$data = $this->sendRequest($this->episodes); //Consulto los episodios
 		if($data){
 			if($data['results']){
@@ -164,7 +172,7 @@ class RickandMortyController extends Controller
 					}
 					$aux_episodio->origin = $aux_location->unique();
 					$aux_episodio->count_origin = $aux_episodio->origin->count();
-					$episode->push($aux_episodio);
+					$episodes->push($aux_episodio);
 				}
 			}
 			$pages = $data['info']['pages']; //Consulto la cantidad de paginas
@@ -185,7 +193,7 @@ class RickandMortyController extends Controller
 						}
 						$aux_episodio->origin = $aux_location->unique();
 						$aux_episodio->count_origin = $aux_episodio->origin->count();
-						$episode->push($aux_episodio);
+						$episodes->push($aux_episodio);
 					}
 				}
 			}	
@@ -193,7 +201,7 @@ class RickandMortyController extends Controller
 		$end_time = microtime(true); //Tiempo de termino
 		$time = number_format(($end_time - $start_time), 2); //Tiempo de total
 
-		return array('episode' => $episode, 'time' => $time);
+		return array('episodes' => $episodes, 'time' => $time);
 	}
 	
 	/*
@@ -236,9 +244,9 @@ class RickandMortyController extends Controller
 
 	
 	/*
-		Descripcion: Esta funcion realiza la llamada a la api mediante GET.
-		Input: $api_url
-		Output: $response
+	Descripcion: Esta funcion realiza la llamada a la api mediante GET.
+	Input: $api_url
+	Output: $response
 	*/
 	private function sendRequest($api_url) 
 	{
